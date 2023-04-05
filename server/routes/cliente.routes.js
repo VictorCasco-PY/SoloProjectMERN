@@ -2,6 +2,9 @@ const ClienteController = require("../controllers/cliente.controller");
 
 module.exports = function (app) {
   app.post("/api/cliente", ClienteController.createCliente);
+  app.post("/api/cliente/:id", ClienteController.crearCuenta);
+  app.delete("/api/cliente/:id/:idCuenta", ClienteController.eliminarCuenta);
+  app.get("/api/cliente/:id/cuentas", ClienteController.findCuentas);
   app.get("/api/cliente", ClienteController.findAllClientes);
   app.get("/api/cliente/:id", ClienteController.getCliente);
   app.put("/api/cliente/:id", ClienteController.updateCliente);

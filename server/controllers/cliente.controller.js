@@ -10,13 +10,55 @@ module.exports.createCliente = async (request, response) => {
       nombre,
       apellido,
       correo,
-      descripcion,
-      monto,
-      vencimiento,
     });
     response.json(cliente);
   } catch (error) {
     response.json(error);
+  }
+};
+
+//Agrega una cuenta al arreglo de cuentas
+module.exports.crearCuenta = async (request, response) => {
+  const { descripcion, monto, vencimiento } = request.body;
+  try {
+    const cliente = await Cliente.findById(request.params.id);
+    cliente.cuentas.push({ descripcion, monto, vencimiento });
+    await cliente.save();
+    response.status(201).json(cliente);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error al agregar cuenta al cliente" });
+  }
+};
+
+//Elimina una cuenta por su ID
+module.exports.eliminarCuenta = async (req, res) => {
+  const { id, idCuenta } = req.params;
+  try {
+    const cliente = await Cliente.findById(id);
+    const cuentaIndex = cliente.cuentas.findIndex(
+      (cuenta) => cuenta._id == idCuenta
+    );
+    if (cuentaIndex === -1) {
+      return res.status(404).json({ message: "Cuenta no encontrada" });
+    }
+    cliente.cuentas.splice(cuentaIndex, 1);
+    await cliente.save();
+    res.json(cliente);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al eliminar cuenta del cliente" });
+  }
+};
+
+//Listar cuentas
+module.exports.findCuentas = async (req, res) => {
+  try {
+    const cliente = await Cliente.findById(req.params.id, "cuentas");
+    res.json(cliente.cuentas);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al obtener cuentas del cliente" });
   }
 };
 

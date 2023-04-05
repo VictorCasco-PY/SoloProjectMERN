@@ -4,6 +4,8 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const port = 8000;
 const enviarCorreo = require("./utils/enviarCorreo");
+const moment = require("moment");
+moment.locale("es");
 
 app.use(
   cors({
@@ -23,7 +25,7 @@ require("./routes/cliente.routes")(app);
 
 //Envio de correos
 app.post("/api/sendemail", async (req, res) => {
-  const { nombre, correo, descripcion, monto, vencimiento } = req.body;
+  const { nombre, correo, cuenta } = req.body;
 
   try {
     const send_to = correo;
@@ -33,14 +35,18 @@ app.post("/api/sendemail", async (req, res) => {
     const message = `
         <h3>Hola, ${nombre}</h3>
         <hr />
-        <p>Descripcion: ${descripcion}</p>
-        <p>Monto: ${monto}</p>
-        <p>Vencimiento: ${vencimiento}</p>
-        <p>Saludos...</p>
+        <p>Usted tiene una cuenta pendiente de este producto: ${
+          cuenta.descripcion
+        }</p>
+        <p>Por un monto de: ${cuenta.monto}Gs.</p>
+        <p>Con vencimiento el: ${moment(cuenta.vencimiento).format(
+          "D [de] MMMM [de] YYYY"
+        )}</p>
+        <p>Saludos cordiales, le esperamos...</p>
     `;
 
     await enviarCorreo(subject, message, send_to, sent_from, reply_to);
-    res.status(200).json({ success: true, message: "Email Sent" });
+    res.status(200).json({ success: true, message: "Correo Enviado" });
   } catch (error) {
     res.status(500).json(error.message);
   }

@@ -1,54 +1,53 @@
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import axios from 'axios';
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
-import Swal from 'sweetalert2'
-import CuentaForm from '../components/CuentaForm';
 
-const CrearCuenta = () => {
-
-    const initialValues = {
+const AgregarCuenta = () => {
+    let { id } = useParams();
+    const [formData, setFormData] = useState({
         descripcion: "",
         monto: "",
-        vencimiento: ""
+        vencimiento: "",
+    });
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const navigate = useNavigate();
-    let { id } = useParams();
-    const [cuenta, setCuenta] = useState(initialValues);
-
-    useEffect(() => {
-        const getData = async () => {
-            const response = await axios.get(`http://localhost:8000/api/cliente/${id}`);
-            setCuenta(response.data);
-        }
-        getData();
-    }, [id]);
-
-
-    const agregarCuenta = async (values) => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        console.log(formData);
         try {
-            await axios.put(`http://localhost:8000/api/cliente/${id}`, values);
-            Swal.fire({
-                icon: 'success',
-                title: 'GENIAL!!!',
-                text: `Se ha actualizado perfectamente!`,
+            const response = await axios.post(`http://localhost:8000/api/cliente/${id}`, formData, {
+                headers: { 'Content-Type': 'application/json' },
             });
-            navigate('/dashboard');
+            console.log(response);
+            setFormData({ descripcion: '', monto: '', vencimiento: '' });
         } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops error',
-                text: `Error: ${error?.response?.data?.message || error.message}`,
-            });
+            console.log(error);
         }
-    }
+    };
 
     return (
-        <CuentaForm
-            initialValues={cuenta}
-            onSubmit={agregarCuenta}
-        />
-    )
-}
+        <div className="container">
+            <p><a href="/dashboard" className="btn btn-primary">Inicio</a></p>
+            <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                    <label htmlFor="descripcion" className="form-label">Descripción:</label>
+                    <input type="text" className="form-control" id="descripcion" name="descripcion" value={formData.descripcion} onChange={handleChange} />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="monto" className="form-label">Monto(Gs):</label>
+                    <input type="number" className="form-control" id="monto" name="monto" value={formData.monto} onChange={handleChange} />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="vencimiento" className="form-label">Vencimiento:</label>
+                    <input type="date" className="form-control" id="vencimiento" name="vencimiento" value={formData.vencimiento} onChange={handleChange} />
+                </div>
+                <button type="submit" className="btn btn-primary">Agregar cuenta</button>
+            </form>
+        </div>
+    );
+};
 
-export default CrearCuenta;
+export default AgregarCuenta;

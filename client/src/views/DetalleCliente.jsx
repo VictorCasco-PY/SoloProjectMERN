@@ -1,23 +1,26 @@
-import React from 'react'
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios'
-import moment from 'moment'
-import Swal from 'sweetalert2'
+import axios from 'axios';
+import moment from "moment";
+import 'moment/dist/locale/es';
+import Swal from 'sweetalert2';
+moment.locale("es");
 
 const DetalleCliente = () => {
-    moment.locale('es');
+
     let { id } = useParams();
     const [cliente, setCliente] = useState([]);
-    const [isCuenta, setIsCuenta] = useState(true);
-    const values = { descripcion: "", monto: "", vencimiento: "" };
-    const navigate = useNavigate();
+    const [cuentas, setCuentas] = useState([])
 
-    const enviarCorreo = () => {
-        const { nombre, descripcion, monto, vencimiento, correo } = cliente;
+    const enviarCorreo = (cuenta) => {
+        const { nombre, correo } = cliente;
+
         const data = {
-            correo, descripcion, monto, vencimiento, nombre
+            correo, nombre, cuenta
         };
+
+        console.log("datos", data);
 
         const response = axios.post(
             "http://localhost:8000/api/sendemail",
@@ -32,65 +35,104 @@ const DetalleCliente = () => {
     };
 
     useEffect(() => {
-        const getData = async () => {
+        async function getData() {
             const response = await axios.get(`http://localhost:8000/api/cliente/${id}`);
+            console.log(response.data)
             setCliente(response.data);
         }
         getData();
-    }, [id]);
+    }, []);
 
-    const eliminarCuenta = async () => {
+    useEffect(() => {
+        // Hacer la solicitud GET al servidor para obtener la lista de cuentas
+        async function getCuentas() {
+            const response = await axios.get(`http://localhost:8000/api/cliente/${id}/cuentas`);
+            setCuentas(response.data);
+        }
+        getCuentas();
+    }, []);
+
+    async function eliminarCuenta(idCuenta) {
         try {
-            await axios.put(`http://localhost:8000/api/cliente/${id}`, values);
+            await axios.delete(`http://localhost:8000/api/cliente/${id}/${idCuenta}`);
+            // Si la eliminación fue exitosa, actualizar la lista de cuentas
+            setCuentas((prevCuentas) =>
+                prevCuentas.filter((cuenta) => cuenta._id !== idCuenta)
+            );
             Swal.fire({
+                title: 'Eliminado correctamente',
                 icon: 'success',
-                title: 'GENIAL!!!',
-                text: `Se ha actualizado perfectamente!`,
+                text: 'La cuenta ha sido eliminado correctamente',
+                confirmButtonText: 'Aceptar'
             });
-            navigate('/dashboard');
         } catch (error) {
+            console.error(error);
             Swal.fire({
                 icon: 'error',
-                title: 'Oops error',
-                text: `Error: ${error?.response?.data?.message || error.message}`,
+                title: 'Error al eliminar la cuenta',
+                text: `Error: ${error}`,
             });
         }
     }
 
-
-    useEffect(() => {
-        if (cliente.descripcion === "") {
-            setIsCuenta(true);
-        }
-    })
-
-
     return (
         <>
-            {
-                isCuenta ?
-                    <>
-                        <a href="/dashboard" className='btn btn-primary mb-2'> Atras</a>
-                        <div className="card">
-                            <div className="card-body">
-                                <h5 className="card-title">Cuentas pendientes de {cliente.nombre}</h5>
-                            </div>
-                            <ul className="list-group list-group-flush">
-                                <li className="list-group-item"><strong>Descripcion:</strong> {cliente.descripcion}</li>
-                                <li className="list-group-item"><strong>Monto:</strong> {cliente.monto}</li>
-                                <li className="list-group-item"><strong>Vencimiento:</strong> {moment(cliente.vencimiento).format('LL')}</li>
-                            </ul>
-                            <div className="card-body">
-                                <button className='btn btn-danger me-2' onClick={enviarCorreo}>Enviar Recordatorio</button>
-                                <button className='btn btn-secondary' onClick={eliminarCuenta}>Eliminar cuenta</button>
-                            </div>
+            {cuentas.length > 0 ? (
+                <>
+                    <a href="/dashboard" className="btn btn-primary mb-2">
+                        {" "}
+                        Atras
+                    </a>
+                    <div className="card">
+                        <div className="card-body">
+                            <h5 className="card-title">Cuentas pendientes de {cliente.nombre}</h5>
                         </div>
-                    </>
-                    :
-                    <div><h2>No hay cuentas pendientes</h2></div>
-            }
+                        <table className="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Descripción</th>
+                                    <th>Monto</th>
+                                    <th>Vencimiento</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {cuentas.map((cuenta) => (
+                                    <tr key={cuenta._id}>
+                                        <td>{cuenta.descripcion}</td>
+                                        <td>{cuenta.monto.toLocaleString()}</td>
+                                        <td>{moment(cuenta.vencimiento).format("D [de] MMMM [de] YYYY")}</td>
+                                        <td>
+                                            <button className="btn btn-secondary me-2" onClick={() => eliminarCuenta(cuenta._id)}>
+                                                Eliminar
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button className="btn btn-danger me-2" onClick={() => enviarCorreo(cuenta)}>
+                                                Enviar Recordatorio
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            ) : (
+                <div className="card">
+                    <div className="card-body">
+                        <h5 className="card-title">No hay cuentas pendientes</h5>
+                        <a href="/dashboard" className="btn btn-primary">
+                            {" "}
+                            Atras
+                        </a>
+                    </div>
+                </div>
+            )}
         </>
-    )
+
+    );
 }
 
 export default DetalleCliente;

@@ -16,9 +16,6 @@ const ClienteShema = new mongoose.Schema(
     apellido: { type: String },
     correo: { type: String },
     cuentas: [CuentaSchema],
-    descripcion: { type: String },
-    monto: { type: Number },
-    vencimiento: { type: Date },
   },
   { timestamps: true }
 );
