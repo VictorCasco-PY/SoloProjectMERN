@@ -91,7 +91,7 @@ const DetalleCliente = () => {
                             <thead>
                                 <tr>
                                     <th>Descripción</th>
-                                    <th>Monto</th>
+                                    <th>Monto(Gs)</th>
                                     <th>Vencimiento</th>
                                     <th></th>
                                     <th></th>
@@ -107,6 +107,9 @@ const DetalleCliente = () => {
                                             <button className="btn btn-secondary me-2" onClick={() => eliminarCuenta(cuenta._id)}>
                                                 Eliminar
                                             </button>
+                                        </td>
+                                        <td>
+                                            <a href={`/cliente/${cliente._id}/cuenta/${cuenta._id}`} className='btn btn-success'>Editar</a>
                                         </td>
                                         <td>
                                             <button className="btn btn-danger me-2" onClick={() => enviarCorreo(cuenta)}>

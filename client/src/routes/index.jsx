@@ -6,6 +6,7 @@ import CrearCuenta from "../views/CrearCuenta";
 import DetalleCliente from "../views/DetalleCliente";
 import ErrorPage from "../views/ErrorPage";
 import LoginPage from "../views/LoginPage";
+import EditarCuenta from "../views/EditarCuenta";
 
 export default createBrowserRouter([
     {
@@ -36,6 +37,11 @@ export default createBrowserRouter([
                 path: "/cliente/:id/detalle",
                 element: <DetalleCliente />,
                 errorElement: <ErrorPage />,
+            },
+            {
+                path: "/cliente/:id/cuenta/:idCuenta",
+                element: <EditarCuenta />,
+                errorElement: <ErrorPage />
             }
         ],
     },

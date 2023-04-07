@@ -62,6 +62,49 @@ module.exports.findCuentas = async (req, res) => {
   }
 };
 
+//Actualizar una cuenta por su ID
+module.exports.actualizarCuenta = async (req, res) => {
+  const { id, idCuenta } = req.params;
+  const { descripcion, monto, vencimiento } = req.body;
+  try {
+    const cliente = await Cliente.findById(id);
+    const cuentaIndex = cliente.cuentas.findIndex(
+      (cuenta) => cuenta._id == idCuenta
+    );
+    if (cuentaIndex === -1) {
+      return res.status(404).json({ message: "Cuenta no encontrada" });
+    }
+    cliente.cuentas[cuentaIndex] = { descripcion, monto, vencimiento };
+    await cliente.save();
+    res.json(cliente);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al actualizar cuenta del cliente" });
+  }
+};
+
+//Obtener una cuenta de un cliente por su id
+module.exports.obtenerCuenta = async (req, res) => {
+  const { id, idCuenta } = req.params;
+
+  try {
+    const cliente = await Cliente.findById(id);
+    if (!cliente) {
+      return res.status(404).json({ message: "Cliente no encontrado" });
+    }
+
+    const cuenta = cliente.cuentas.find((cuenta) => cuenta._id == idCuenta);
+    if (!cuenta) {
+      return res.status(404).json({ message: "Cuenta no encontrada" });
+    }
+
+    res.json(cuenta);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al obtener cuenta del cliente" });
+  }
+};
+
 //Listar todos los clientes
 module.exports.findAllClientes = async (request, response) => {
   try {
